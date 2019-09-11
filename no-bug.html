@@ -1,0 +1,86 @@
+<html>
+<head>
+  <title>Three AO compute - Torus knot - Texture</title>
+  <style>
+    body { margin: 0; }
+    canvas { width: 640px; height: 360px }
+    div { position: absolute; text-align: center; top: 0; right: 0; left: 0; }
+  </style>
+</head>
+<body>
+
+<div>
+  In this example, everything works fine, the process correctly outputs the position map <br>
+  And yet, by adding a single line (with no impact to the algorithm), <a href="no-bug.html">an issue appears</a>
+</div>
+
+<script src="js/scripts/three-full.min.js"></script>
+<script>
+  // Alias to use Three-full as Three, since three-full build exports Three and not THREE...
+  var THREE = THREE || Three;
+</script>
+<script src="js/scripts/webgl-float-texture-support.min.js"></script>
+<script src="js/scripts/three-js-mesh-world-normal-material.min.js"></script>
+<script src="js/scripts/three-js-mesh-position-materials.min.js"></script>
+<script src="js/three-js-ios-no-bug.js"></script>
+<script src="js/scripts/three-js-debug-rendertarget.min.js"></script>
+<script>
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 150 );
+  camera.position.z = 5;
+
+  var renderer = new THREE.WebGLRenderer();
+  let size = new THREE.Vector2(window.innerWidth, window.innerHeight);
+  renderer.setSize(size.x, size.y);
+  renderer.shadowMap.enabled = false;
+  renderer.setClearColor(0xaaaaaa);
+  document.body.appendChild( renderer.domElement );
+
+  let controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.25;
+  controls.rotateSpeed = 0.35;
+  controls.minZoom = 1;
+
+  console.log( window.innerWidth, window.innerHeight );
+
+  var geometry = new THREE.TorusKnotGeometry(1, 0.3, 200, 50);
+  var material = new THREE.MeshPhongMaterial( { color: 0xffffff } );
+  var object = new THREE.Mesh( geometry, material );
+  object.castShadow = true;
+  object.receiveShadow = true;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
+  scene.add(new THREE.AxesHelper(3));
+
+
+  scene.add( object );
+
+  let start = Date.now();
+  let cb = function (p, t) {
+    console.log(`Progress: ${p} of ${t} shadow maps at ${Date.now() - start} ms`)
+  };
+
+  THREEiOSBugDisplay.ComputeTexture(renderer, scene, object, 1024)
+          .then(texture => {
+            console.log("Texture calculated", Date.now() - start);
+            object.material.map = texture;
+            object.material.needsUpdate = true;
+          });
+
+  renderer.setClearColor(0xaaaaaa);
+
+  let l = Date.now();
+  let animate = () => {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera)
+  };
+
+
+  animate();
+
+</script>
+</body>
+</html>
