@@ -266,7 +266,7 @@
 
     const textureAveragingFragmentShader = `
 
-#define MAX_AMOUNT_OF_SHADOW_MAPS_AOR 2
+#define MAX_AMOUNT_OF_SHADOW_MAPS_SMA 2
 
 varying vec2 vUv;
 
@@ -280,13 +280,13 @@ uniform vec3 boundingBoxMax_AOR;
 
 uniform vec2 shadowMapSize_AOR;
 uniform int numberOfShadowMaps_AOR;
-uniform sampler2D shadowMaps_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_AOR];
-uniform vec3 shadowMapDirections_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_AOR];
-uniform mat4 lightSpaceMatrices_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_AOR];
+uniform sampler2D shadowMaps_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_SMA];
+uniform vec3 shadowMapDirections_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_SMA];
+uniform mat4 lightSpaceMatrices_AOR[MAX_AMOUNT_OF_SHADOW_MAPS_SMA];
 
 uniform int totalShadowMapsAveraged_AOR;
 uniform sampler2D previousAveragingValues_AOR;
-uniform sampler2D previousAveragingWeights_AOR;
+uniform sampler2D previousIndirectLightMap_SMA;
 
 void main() {
     texture2D(unwrappedMapX_AOR, vUv);
@@ -298,7 +298,7 @@ void main() {
     normalMap_AOR;
     previousAveragingValues_AOR;
 
-    for (int i = 0; i < MAX_AMOUNT_OF_SHADOW_MAPS_AOR; i++) {
+    for (int i = 0; i < MAX_AMOUNT_OF_SHADOW_MAPS_SMA; i++) {
         if (i < numberOfShadowMaps_AOR) {
             shadowMapDirections_AOR[i];
             lightSpaceMatrices_AOR[i];
@@ -310,7 +310,7 @@ void main() {
 `;
 
 
-    const averagingShader = {
+    const smApplyingShader = {
         vertex:
             `varying vec2 vUv;
         
@@ -504,7 +504,7 @@ void main() {
             let unwrapping;
             let dt;
             let lastTime;
-            let averagingTarget;
+            let smApplyTarget;
             let shadowMapGenerators;
 
 
@@ -561,7 +561,7 @@ void main() {
             {
                 unwrapping = new UnwrappingUV(renderer, mesh, resolution);
 
-                averagingTarget.setUniforms({
+                smApplyTarget.setUniforms({
                     unwrappedMapX_AOR: { value: unwrapping.textureX },
                     unwrappedMapY_AOR: { value: unwrapping.textureY },
                     unwrappedMapZ_AOR: { value: unwrapping.textureZ },
@@ -569,7 +569,7 @@ void main() {
                     boundingBoxMin_AOR: { value: unwrapping.boundingBox.min },
                     boundingBoxMax_AOR: { value: unwrapping.boundingBox.max },
                     previousAveragingValues_AOR: { value: null },
-                    previousAveragingWeights_AOR: { value: null },
+                    previousAveragingWeights_SMA: { value: null },
                 });
 
                 // Use a material switcher to do a depth render for the shadow maps
@@ -588,7 +588,7 @@ void main() {
                 matSwitcher.dispose();
 
                 let data = extractShadowMapData(shadowMapGenerators, 2);
-                averagingTarget.setUniforms({
+                smApplyTarget.setUniforms({
                     numberOfShadowMaps_AOR: { value: shadowMapGenerators.length, needsUpdate: true },
                     shadowMaps_AOR: { value: data.sm, needsUpdate: true },
                     shadowMapDirections_AOR: { value: data.smd, needsUpdate: true },
@@ -596,7 +596,7 @@ void main() {
                     totalShadowMapsAveraged_AOR: { value: 0, needsUpdate: true }
                 });
 
-                averagingTarget.renderTexture(renderer);
+                smApplyTarget.renderTexture(renderer);
             };
 
 
@@ -616,7 +616,7 @@ void main() {
                 shadowMapGenerators.push(new ShadowMapGenerator(dir, 512));
                 shadowMapGenerators.push(new ShadowMapGenerator(dir, 512));
 
-                averagingTarget = new RenderTargetTextureAO(size, threeFull.RGBAFormat, averagingShader);
+                smApplyTarget = new RenderTargetTextureAO(size, threeFull.RGBAFormat, smApplyingShader);
             }
 
 
@@ -630,8 +630,8 @@ void main() {
 
                 if (cancelMode) return;
 
-                let texture = saveToDataTexture(averagingTarget.renderTarget);
-                averagingTarget.dispose();
+                let texture = saveToDataTexture(smApplyTarget.renderTarget);
+                smApplyTarget.dispose();
                 resolve(texture);
             }
         });
