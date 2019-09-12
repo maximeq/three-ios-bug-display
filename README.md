@@ -1,6 +1,6 @@
 # three-ios-bug-display
 
-This repositery is used to display a weird bug on iOS uncovered while developing our software.
+This repository is used to display a weird bug on iOS uncovered while developing our software.
 You can find a demo at https://maximeq.github.io/three-ios-bug-display/
 
 
@@ -16,12 +16,19 @@ slight changes in the context will resolve the issue. By slight changes we mean:
 - changing fragment shader uniform names
 - not calling a specific uniform
 - adding or removing a single line of code in a shader different than the one where the issue happens, 
-  this line of code having litterally no algorithmic impact on the code (this line has no use)
+  this line of code having literally no algorithmic impact on the code (this line has no use)
 - changing the way the shadow map depth materials are applied
 - basically, some changes that give an equivalent code
 
 
 ## FAQ
+
+
+### If this bug is so circumstantial, why aren't you using a workaround ?
+
+This is a very small part of our end product, which features a lot more moving parts, and we end up with strange 
+artifacts that only appear on iOS. 
+Our bug tracking has lead us to believe that our overall artifact issue is linked to this specific bug.
 
 
 ### What is the demo supposed to show ?
@@ -32,7 +39,7 @@ one of the examples will show th e mesh with a normal map instead of a position 
 
 ### I don't see a difference between the two examples, why ?
 
-If you're not on an iOS device, it's supposed not to have any difference, beacause the code of the two pages is 
+If you're not on an iOS device, it's supposed not to have any difference, because the code of the two pages is 
 completely equivalent.
 
 But if you are on iOS, well it's good news, because it means that this bug was somehow resolved, or that your 
