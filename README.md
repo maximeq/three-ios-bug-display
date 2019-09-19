@@ -5,8 +5,11 @@ You can find a demo at https://maximeq.github.io/three-ios-bug-display/
 
 ## Overview
 The main script has a useless line of code in a shader at line 50 :
+
     "   vec4 worldSpacePosition2 = modelMatrix * vec4( position, 1. );"
+
 If this line is removed, the result is not the same as if the line is present. 
+
 This only happens on iOS devices. 
 
 ## Details
