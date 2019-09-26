@@ -59,3 +59,5 @@ But if you are on iOS and don't see the bug, can you please drop a message with 
 - iPhone X: bug confirmed
 - iPad 2nd gen : no WebGL support
 - iPad Pro 3rd gen: bug confirmed
+
+On iPhone Xs with iOS 13 it seems to work.
